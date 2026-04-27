@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spiro ISP v1.9.6 - Total System</title>
+<style>
+/* 1. PERFORMANCE CORE & THEME */
+:root{--green:#22c55e;--navy:#0f172a;--purp:#7c3aed;--orange:#f97316;--sb-w:200px;--bg:#f8fafc}
+*{box-sizing:border-box}
+body{display:flex;margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden}
+
+/* 2. LOGIN SCREEN */
+#login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--navy); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+.login-card { background: #fff; padding: 40px; border-radius: 15px; width: 350px; text-align: center; border-top: 5px solid var(--green); }
+.login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-weight: 700; outline: none; }
+.btn-login { width: 100%; background: var(--green); color: var(--navy); border: none; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+
+/* 3. SIDEBAR */
+#main-app { display: none; width: 100%; }
+.sidebar{width:var(--sb-w);background:var(--navy);position:fixed;height:100vh;color:#fff;z-index:100}
+.brand-box{background:var(--green);padding:1rem .5rem;text-align:center;color:var(--navy);margin-bottom:10px}
+.nav-c{padding:10px}
+.nav-link{color:#94a3b8;padding:12px;border-radius:8px;text-decoration:none;display:block;margin-bottom:5px;font-size:13px;cursor:pointer;font-weight:700}
+.nav-link:hover{background:rgba(255,255,255,0.05)}
+.nav-link.active{background:var(--purp);color:#fff}
+
+/* 4. MAIN LAYOUT */
+.main{margin-left:var(--sb-w);flex:1;padding:25px;min-width:0}
+.page{display:none}.page.active{display:block}
+.section-title{font-size:1.8rem;font-weight:900;color:var(--navy);margin-bottom:20px;text-transform:uppercase}
+
+/* 5. DASHBOARD CARDS */
+.metrics-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:25px}
+.m-card{padding:20px;border-radius:12px;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.m-label{font-size:11px;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+.m-value{font-size:1.6rem;font-weight:900}
+.bg-orange{background-color:var(--orange)} .bg-slate{background-color:#475569} .bg-green{background-color:#16a34a}
+
+/* 6. ACTION BARS */
+.action-bar { display: flex; align-items: flex-end; gap: 12px; padding: 15px 0 25px 0; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; overflow-x: auto; white-space: nowrap; }
+.f-item { flex: 0 0 auto; }
+label { font-size: 10px; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 8px; display: block; }
+input, select { height: 42px; padding: 0 12px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 800; outline: none; background: #fff; min-width: 100px; }
+
+/* 7. BUTTONS & TABLES */
+.btn { border: none; padding: 0 20px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 10px; height: 42px; transition: 0.1s; display: inline-flex; align-items: center; justify-content: center; }
+.btn-o { background: var(--orange); color: #fff; }
+.btn-p { background: var(--purp); color: #fff; }
+.btn-s { background: #e2e8f0; color: var(--navy); border: 1px solid #cbd5e1; }
+.btn-red { background: #ef4444; color: #fff; }
+
+.data-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.data-table th{text-align:left;font-size:11px;font-weight:900;padding:15px;background:#f8fafc;border-bottom:2px solid #e2e8f0;text-transform:uppercase}
+.data-table td{padding:15px;font-size:14px;font-weight:700;border-bottom:1px solid #f1f5f9}
+
+/* 8. PREVIEW MODAL & SCRIPT BOX */
+#preview-modal { display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.95); justify-content: center; align-items: center; }
+.modal-content { background: #e2e8f0; width: 95%; height: 95%; border-radius: 15px; padding: 20px; overflow-y: auto; }
+.paper-a4 { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 1100px; padding: 40px; }
+#print-area { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ticket { border: 1px solid #333; padding: 10px; text-align: center; border-radius: 4px; color: #000; font-family: monospace; }
+.script-box { background: #1e293b; color: #38bdf8; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; border: 1px solid #334155; margin-top: 15px; white-space: pre; line-height: 1.5; }
+
+@media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left:0; top:0; width:100%; display:grid !important; } }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-card">
+        <h2 style="margin:0 0 25px 0">SPIRO ADMIN</h2>
+        <input type="text" id="l_user" class="login-input" placeholder="USERNAME" value="admin">
+        <input type="password" id="l_pass" class="login-input" placeholder="PASSWORD" value="1234">
+        <button class="btn-login" onclick="handleLogin()">Login</button>
+        <p id="l_err" style="color:red; font-size:11px; margin-top:10px; display:none">Wrong credentials!</p>
+    </div>
+</div>
+
+<div id="main-app">
+    <aside class="sidebar">
+        <div class="brand-box"><h1>SPIRO ISP</h1></div>
+        <div class="nav-c">
+            <div class="nav-link active" onclick="sh('dash',this)">DASHBOARD</div>
+            <div class="nav-link" onclick="sh('packages',this)">PACKAGES</div>
+            <div class="nav-link" onclick="sh('vouchers',this)">VOUCHERS</div>
+            <div class="nav-link" onclick="sh('router',this)" style="color:var(--green)">ROUTER SETUP</div>
+            <div class="nav-link" onclick="sh('settings',this)">SETTINGS</div>
+            <div class="nav-link" onclick="location.reload()" style="color:#f87171; margin-top:20px">LOGOUT</div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <!-- 1. DASHBOARD -->
+        <div id="dash" class="page active">
+            <h2 class="section-title">System Overview</h2>
+            <div class="metrics-grid">
+                <div class="m-card bg-orange"><div class="m-label">💰 NET SALES</div><div class="m-value">UGX <span id="val-net">0</span></div></div>
+                <div class="m-card bg-slate"><div class="m-label">🎫 VOUCHERS</div><div class="m-value"><span id="val-vou">0</span></div></div>
+                <div class="m-card bg-green"><div class="m-label">📶 NETWORK</div><div class="m-value">ONLINE</div></div>
+            </div>
+            <div style="background:#fff; padding:25px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--purp)">
+                <h3 style="margin-top:0; color:var(--navy); font-size:14px; text-transform:uppercase">Recent Activity</h3>
+                <div id="dash-recent-list" style="font-size:13px; color:#64748b">No recent transactions.</div>
+            </div>
+        </div>
+
+        <!-- 2. PACKAGES -->
+        <div id="packages" class="page">
+            <h2 class="section-title">Package Setup</h2>
+            <div class="action-bar" style="border-left-color:var(--purp)">
+                <div class="f-item"><label>Name</label><input type="text" id="p_name" placeholder="Daily"></div>
+                <div class="f-item"><label>Price (UGX)</label><input type="number" id="p_price" placeholder="1000"></div>
+                <div class="f-item"><label>Speed (Rx/Tx)</label><input type="text" id="p_speed" value="1M/2M" placeholder="1M/2M"></div>
+                <div class="f-item"><label>Val</label><input type="number" id="p_val" value="1" style="min-width:60px"></div>
+                <div class="f-item"><label>Unit</label><select id="p_unit"><option>HOURS</option><option selected>DAYS</option></select></div>
+                <button class="btn btn-p" onclick="savePkg()">Save</button>
+            </div>
+            <table class="data-table">
+                <thead><tr><th>NAME</th><th>PRICE</th><th>SPEED</th><th>VALIDITY</th><th>ACTION</th></tr></thead>
+                <tbody id="pkg_list"></tbody>
+            </table>
+        </div>
+
+        <!-- 3. VOUCHERS -->
+        <div id="vouchers" class="page">
+            <h2 class="section-title">Voucher Management</h2>
+            <div class="action-bar" style="border-left-color:var(--orange)">
+                <div class="f-item"><label>Hotspot Name</label><input type="text" id="h_name" value="SPIRO WIFI"></div>
+                <div class="f-item"><label>Package</label><select id="v_pkg_sel"></select></div>
+                <div class="f-item"><label>Qty</label><input type="number" id="v_qty" value="8" style="min-width:60px"></div>
+                <button class="btn btn-o" onclick="genVou()">Gen & Print</button>
+                <button class="btn btn-red" style="margin-left:auto" onclick="clearVou()">Clear All</button>
+            </div>
+            <table class="data-table">
+                <thead><tr><th>CODE</th><th>PACKAGE</th><th>PRICE</th><th>STATUS</th></tr></thead>
+                <tbody id="v_list"></tbody>
+            </table>
+        </div>
+
+        <!-- 4. ROUTER SETUP -->
+        <div id="router" class="page">
+            <h2 class="section-title">MikroTik Router Script</h2>
+            <div style="background:#fff; padding:25px; border-radius:15px; border-left: 5px solid var(--green)">
+                <h3 style="margin-top:0">Terminal Script Generator</h3>
+                <p style="font-size:13px; color:#64748b">Copy and paste this into MikroTik <b>New Terminal</b> to auto-create Profiles and Cleanup Tasks.</p>
+                <div class="script-box" id="mt-script"># Setup your packages first to see profiles here...</div>
+                <button class="btn btn-p" style="margin-top:15px" onclick="copyScript()">Copy Terminal Script</button>
+            </div>
+        </div>
+
+        <!-- 5. SETTINGS -->
+        <div id="settings" class="page">
+            <h2 class="section-title">Settings</h2>
+            <button class="btn btn-red" onclick="if(confirm('Wipe everything?')) {localStorage.clear(); location.reload();}">Factory Reset</button>
+        </div>
+    </main>
+</div>
+
+<!-- PRINT MODAL -->
+<div id="preview-modal">
+    <div class="modal-content">
+        <div style="margin-bottom:20px; display:flex; gap:10px;">
+            <button class="btn btn-p" onclick="window.print()">Print Now</button>
+            <button class="btn btn-s" onclick="document.getElementById('preview-modal').style.display='none'">Close</button>
+        </div>
+        <div class="paper-a4"><div id="print-area"></div></div>
+    </div>
+</div>
+
+<script>
+let pkgs = JSON.parse(localStorage.getItem('sp_pkgs')) || [];
+let vous = JSON.parse(localStorage.getItem('sp_vous')) || [];
+
+function sh(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+}
+
+function handleLogin() {
+    if(document.getElementById('l_user').value === 'admin' && document.getElementById('l_pass').value === '1234') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        renderAll();
+    } else { document.getElementById('l_err').style.display = 'block'; }
+}
+
+function savePkg() {
+    const p = { id: Date.now(), name: document.getElementById('p_name').value, price: document.getElementById('p_price').value, speed: document.getElementById('p_speed').value, val: document.getElementById('p_val').value, unit: document.getElementById('p_unit').value };
+    if(!p.name || !p.price) return alert('Fill Name/Price');
+    pkgs.push(p);
+    localStorage.setItem('sp_pkgs', JSON.stringify(pkgs));
+    renderAll();
+}
+
+function delPkg(id) { pkgs = pkgs.filter(x => x.id !== id); localStorage.setItem('sp_pkgs', JSON.stringify(pkgs)); renderAll(); }
+
+function genVou() {
+    const pkgId = document.getElementById('v_pkg_sel').value;
+    const qty = parseInt(document.getElementById('v_qty').value);
+    const pkg = pkgs.find(x => x.id == pkgId);
+    if(!pkg) return alert('Select Package');
+    const printArea = document.getElementById('print-area');
+    printArea.innerHTML = '';
+    for(let i=0; i<qty; i++) {
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        vous.push({ code, pkg: pkg.name, price: pkg.price });
+        printArea.innerHTML += `<div class="ticket"><b>${document.getElementById('h_name').value}</b><br><span style="font-size:18px">${code}</span><br><small>${pkg.name} - UGX ${pkg.price}</small></div>`;
+    }
+    localStorage.setItem('sp_vous', JSON.stringify(vous));
+    document.getElementById('preview-modal').style.display = 'flex';
+    renderAll();
+}
+
+function clearVou() { if(confirm('Clear all?')) { vous = []; localStorage.setItem('sp_vous', JSON.stringify(vous)); renderAll(); } }
+
+function copyScript() { navigator.clipboard.writeText(document.getElementById('mt-script').innerText); alert('Copied!'); }
+
+function renderAll() {
+    const total = vous.reduce((s, v) => s + parseInt(v.price), 0);
+    document.getElementById('val-net').innerText = total.toLocaleString();
+    document.getElementById('val-vou').innerText = vous.length;
+
+    const pList = document.getElementById('pkg_list');
+    const pSel = document.getElementById('v_pkg_sel');
+    pList.innerHTML = ''; pSel.innerHTML = '';
+    let mtScript = `/ip hotspot user profile\n`;
+    
+    pkgs.forEach(p => {
+        pList.innerHTML += `<tr><td>${p.name}</td><td>${p.price}</td><td>${p.speed}</td><td>${p.val} ${p.unit}</td><td><button class="btn-red" onclick="delPkg(${p.id})">DEL</button></td></tr>`;
+        pSel.innerHTML += `<option value="${p.id}">${p.name} (UGX ${p.price})</option>`;
+        mtScript += `add name="${p.name.replace(/\s/g,'_')}" rate-limit="${p.speed}" shared-users=1 status-autorefresh=1m\n`;
+    });
+
+    mtScript += `\n/system script\nadd name="clean_vouchers" source="/ip hotspot user\\r\\n:foreach i in=[find where uptime=limit-uptime] do={\\r\\n    remove \\$i\\r\\n}"\n`;
+    mtScript += `\n/system scheduler\nadd name="Midnight_Cleanup" start-time=02:00:00 interval=1d on-event="clean_vouchers"`;
+    document.getElementById('mt-script').innerText = mtScript;
+
+    const vList = document.getElementById('v_list');
+    vList.innerHTML = '';
+    vous.slice().reverse().slice(0,10).forEach(v => {
+        vList.innerHTML += `<tr><td>${v.code}</td><td>${v.pkg}</td><td>${v.price}</td><td>UNUSED</td></tr>`;
+    });
+}
+</script>
+</body>
+</html>
